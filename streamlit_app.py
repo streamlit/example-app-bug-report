@@ -65,7 +65,7 @@ st.sidebar.write(
     f"[Read more](https://docs.streamlit.io/knowledge-base/tutorials/databases/public-gsheet) about connecting your Streamlit app to Google Sheets."
 )
 
-form = st.form(key="annotation", clear_on_submit=True)
+form = st.form(key="annotation")
 
 with form:
     cols = st.columns((1, 1))
