@@ -75,7 +75,7 @@ with form:
     )
     comment = st.text_area("Comment:")
     cols = st.columns(2)
-    date = cols[0].date_input("Bug date occurrence")
+    date = cols[0].date_input("Bug date occurrence:")
     bug_severity = cols[1].slider("Bug severity:", 1, 5, 2)
     submitted = st.form_submit_button(label="Submit")
 
