@@ -6,7 +6,7 @@ import pandas as pd
 SCOPE = "https://www.googleapis.com/auth/spreadsheets"
 SPREADSHEET_ID = "1QlPTiVvfRM82snGN6LELpNkOwVI1_Mp9J9xeJe-QoaA"
 SHEET_NAME = "Database"
-GSHEET_URL = "https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}"
+GSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}"
 
 
 @st.experimental_singleton()
