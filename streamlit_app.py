@@ -1,7 +1,8 @@
+import pandas as pd
 import streamlit as st
 from google.oauth2 import service_account
+from googleapiclient import _auth
 from googleapiclient.discovery import build
-import pandas as pd
 
 SCOPE = "https://www.googleapis.com/auth/spreadsheets"
 SPREADSHEET_ID = "1QlPTiVvfRM82snGN6LELpNkOwVI1_Mp9J9xeJe-QoaA"
@@ -17,19 +18,20 @@ def connect_to_gsheet():
         scopes=[SCOPE],
     )
 
+    http = _auth.authorized_http(credentials)
     service = build("sheets", "v4", credentials=credentials)
     gsheet_connector = service.spreadsheets()
-    return gsheet_connector
+    return gsheet_connector, http
 
 
-def get_data(gsheet_connector) -> pd.DataFrame:
+def get_data(gsheet_connector, http) -> pd.DataFrame:
     values = (
         gsheet_connector.values()
         .get(
             spreadsheetId=SPREADSHEET_ID,
             range=f"{SHEET_NAME}!A:E",
         )
-        .execute()
+        .execute(http=http)
     )
 
     df = pd.DataFrame(values["values"])
@@ -38,24 +40,20 @@ def get_data(gsheet_connector) -> pd.DataFrame:
     return df
 
 
-def add_row_to_gsheet(gsheet_connector, row) -> None:
-    values = (
-        gsheet_connector.values()
-        .append(
-            spreadsheetId=SPREADSHEET_ID,
-            range=f"{SHEET_NAME}!A:E",
-            body=dict(values=row),
-            valueInputOption="USER_ENTERED",
-        )
-        .execute()
-    )
+def add_row_to_gsheet(gsheet_connector, row, http) -> None:
+    gsheet_connector.values().append(
+        spreadsheetId=SPREADSHEET_ID,
+        range=f"{SHEET_NAME}!A:E",
+        body=dict(values=row),
+        valueInputOption="USER_ENTERED",
+    ).execute(http=http)
 
 
 st.set_page_config(page_title="Bug report", page_icon="🐞", layout="centered")
 
 st.title("🐞 Bug report!")
 
-gsheet_connector = connect_to_gsheet()
+gsheet_connector, http = connect_to_gsheet()
 
 st.sidebar.write(
     f"This app shows how a Streamlit app can interact easily with a [Google Sheet]({GSHEET_URL}) to read or store data."
@@ -82,7 +80,9 @@ with form:
 
 if submitted:
     add_row_to_gsheet(
-        gsheet_connector, [[author, bug_type, comment, str(date), bug_severity]]
+        gsheet_connector,
+        [[author, bug_type, comment, str(date), bug_severity]],
+        http=http,
     )
     st.success("Thanks! Your bug was recorded.")
     st.balloons()
@@ -90,4 +90,4 @@ if submitted:
 expander = st.expander("See all records")
 with expander:
     st.write(f"Open original [Google Sheet]({GSHEET_URL})")
-    st.dataframe(get_data(gsheet_connector))
+    st.dataframe(get_data(gsheet_connector, http=http))
