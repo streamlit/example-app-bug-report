@@ -37,7 +37,7 @@ def connect_to_gsheet():
         http=authorized_http,
     )
     gsheet_connector = service.spreadsheets()
-    return gsheet_connector, http
+    return gsheet_connector, authorized_http
 
 
 def get_data(gsheet_connector, http) -> pd.DataFrame:
