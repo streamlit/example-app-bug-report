@@ -1,1 +1,4 @@
 .streamlit
+
+.envrc
+.direnv/

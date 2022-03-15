@@ -37,17 +37,17 @@ def connect_to_gsheet():
         http=authorized_http,
     )
     gsheet_connector = service.spreadsheets()
-    return gsheet_connector, authorized_http
+    return gsheet_connector
 
 
-def get_data(gsheet_connector, http) -> pd.DataFrame:
+def get_data(gsheet_connector) -> pd.DataFrame:
     values = (
         gsheet_connector.values()
         .get(
             spreadsheetId=SPREADSHEET_ID,
             range=f"{SHEET_NAME}!A:E",
         )
-        .execute(http=http)
+        .execute()
     )
 
     df = pd.DataFrame(values["values"])
@@ -56,20 +56,20 @@ def get_data(gsheet_connector, http) -> pd.DataFrame:
     return df
 
 
-def add_row_to_gsheet(gsheet_connector, row, http) -> None:
+def add_row_to_gsheet(gsheet_connector, row) -> None:
     gsheet_connector.values().append(
         spreadsheetId=SPREADSHEET_ID,
         range=f"{SHEET_NAME}!A:E",
         body=dict(values=row),
         valueInputOption="USER_ENTERED",
-    ).execute(http=http)
+    ).execute()
 
 
 st.set_page_config(page_title="Bug report", page_icon="🐞", layout="centered")
 
 st.title("🐞 Bug report!")
 
-gsheet_connector, http = connect_to_gsheet()
+gsheet_connector = connect_to_gsheet()
 
 st.sidebar.write(
     f"This app shows how a Streamlit app can interact easily with a [Google Sheet]({GSHEET_URL}) to read or store data."
@@ -98,7 +98,6 @@ if submitted:
     add_row_to_gsheet(
         gsheet_connector,
         [[author, bug_type, comment, str(date), bug_severity]],
-        http=http,
     )
     st.success("Thanks! Your bug was recorded.")
     st.balloons()
@@ -106,4 +105,4 @@ if submitted:
 expander = st.expander("See all records")
 with expander:
     st.write(f"Open original [Google Sheet]({GSHEET_URL})")
-    st.dataframe(get_data(gsheet_connector, http=http))
+    st.dataframe(get_data(gsheet_connector))
