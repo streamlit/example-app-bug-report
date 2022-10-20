@@ -76,7 +76,7 @@ st.sidebar.write(
 )
 
 st.sidebar.write(
-    f"[Read more](https://docs.streamlit.io/knowledge-base/tutorials/databases/public-gsheet) about connecting your Streamlit app to Google Sheets."
+    f"[Read more](https://docs.streamlit.io/knowledge-base/tutorials/databases/private-gsheet) about connecting your Streamlit app to Google Sheets."
 )
 
 form = st.form(key="annotation")
@@ -94,13 +94,20 @@ with form:
     submitted = st.form_submit_button(label="Submit")
 
 
+list_of_characters = ["=", "+", "-", "@", "0x09", "0x0D"]
 if submitted:
-    add_row_to_gsheet(
-        gsheet_connector,
-        [[author, bug_type, comment, str(date), bug_severity]],
-    )
-    st.success("Thanks! Your bug was recorded.")
-    st.balloons()
+    if any(char in author for char in list_of_characters) or any(char in comment for char in list_of_characters):
+        st.error(
+            "Your name or comment cannot start with a character from the list of characters: "
+            f"{list_of_characters}"
+        )
+    else:
+        add_row_to_gsheet(
+            gsheet_connector,
+            [[author, bug_type, comment, str(date), bug_severity]],
+        )
+        st.success("Thanks! Your bug was recorded.")
+        st.balloons()
 
 expander = st.expander("See all records")
 with expander:
