@@ -1,6 +1,8 @@
 import json
 import openai
 
+from ..config.prompt import FICHA_FINANCEIRA_PROMPT_TEXT_TO_JSON
+
 def get_model_list(api_key: str, org_id: str) -> None:
     openai.organization = org_id
     openai.api_key = api_key
@@ -12,8 +14,7 @@ def get_json_from_gpt(api_key: str, org_id: str, text: str) -> json:
     openai.api_key = api_key
     response = openai.Completion.create(
                     model="text-davinci-003",
-                    prompt="Return a json from the text below.\n" +
-                    f"'''{text}'''",
+                    prompt=FICHA_FINANCEIRA_PROMPT_TEXT_TO_JSON + "\n" + f"'''{text}'''",
                     max_tokens=1200,
                     temperature=0
                 )
