@@ -18,10 +18,8 @@ def get_json_from_gpt(api_key: str, org_id: str, text: str) -> json:
                     temperature=0
                 )
     
-    resp_json = json.loads(response)
-    gpt_text = resp_json["choices"][0]["text"][14:] #gets the text field and trims the starting 14 chars
-    gpt_json = json.loads(gpt_text[14:])
-    for v in gpt_json["Ficha Financeira de Venda"]["Vendedores"].keys():
-        print(v)
+    resp_json = json.loads(str(response))
+    gpt_text = resp_json["choices"][0]["text"]
+    gpt_json = json.loads("{" + gpt_text.split("{",1)[1]) #removes
 
     return gpt_json
