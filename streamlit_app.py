@@ -1,3 +1,5 @@
+from io import StringIO
+import json
 import google_auth_httplib2
 import httplib2
 import pandas as pd
@@ -6,9 +8,12 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import HttpRequest
 
+from utils.pdf import text_extractor
+from utils.gpt import get_model_list, get_json_from_gpt
+
 SCOPE = "https://www.googleapis.com/auth/spreadsheets"
-SPREADSHEET_ID = "1QlPTiVvfRM82snGN6LELpNkOwVI1_Mp9J9xeJe-QoaA"
-SHEET_NAME = "Database"
+SPREADSHEET_ID = "1h6G7_T2T88Lh5rottS8DYV-ieqIqHZCbfn3HoW1NTPw"
+SHEET_NAME = "Sheet1"
 GSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}"
 
 
@@ -65,44 +70,60 @@ def add_row_to_gsheet(gsheet_connector, row) -> None:
     ).execute()
 
 
-st.set_page_config(page_title="Bug report", page_icon="🐞", layout="centered")
+st.set_page_config(page_title="Cadastro de ficha financeira", page_icon="📄", layout="centered")
 
-st.title("🐞 Bug report!")
+st.title("📄 Cadastro de ficha financeira")
 
 gsheet_connector = connect_to_gsheet()
 
 st.sidebar.write(
-    f"This app shows how a Streamlit app can interact easily with a [Google Sheet]({GSHEET_URL}) to read or store data."
+    f"Este aplicativo recebe uma ficha financeira emitida pelo Vista Office e submete os dados para o Arena."
 )
 
 st.sidebar.write(
-    f"[Read more](https://docs.streamlit.io/knowledge-base/tutorials/databases/public-gsheet) about connecting your Streamlit app to Google Sheets."
+    f"O projeto faz uso de um leitor de PDFs e do ChatGPT para ler e moldar os dados no formato correto."
 )
 
 form = st.form(key="annotation")
 
 with form:
     cols = st.columns((1, 1))
-    author = cols[0].text_input("Report author:")
-    bug_type = cols[1].selectbox(
-        "Bug type:", ["Front-end", "Back-end", "Data related", "404"], index=2
+    contract = cols[0].text_input("Número do contrato:")
+    cols = st.columns(1)
+    file = st.file_uploader(
+        label="Enviar a ficha financeira do Vista Office",
+        type="pdf",
+        help="Precisa ser o arquivo pdf da ficha financeira gerada pelo Vista Office",
     )
-    comment = st.text_area("Comment:")
-    cols = st.columns(2)
-    date = cols[0].date_input("Bug date occurrence:")
-    bug_severity = cols[1].slider("Bug severity:", 1, 5, 2)
     submitted = st.form_submit_button(label="Submit")
 
 
 if submitted:
     add_row_to_gsheet(
         gsheet_connector,
-        [[author, bug_type, comment, str(date), bug_severity]],
+        [[contract]],
     )
-    st.success("Thanks! Your bug was recorded.")
+    st.success("Obrigado! A ficha foi recebida.")
     st.balloons()
 
-expander = st.expander("See all records")
+expander = st.expander("Veja os registros")
 with expander:
     st.write(f"Open original [Google Sheet]({GSHEET_URL})")
     st.dataframe(get_data(gsheet_connector))
+
+
+if file is not None:
+    another_expander = st.expander("Veja o texto extraído do PDF")
+    with another_expander:
+        file_text = text_extractor(file.getvalue())
+        st.text(file_text)
+
+    yet_another_expander = st.expander("Veja a estrutura gerada pelo GPT")
+    with yet_another_expander:
+        #st.text(get_model_list(st.secrets["openai"]["openai_api_key"], st.secrets["openai"]["openai_org_id"]))
+        gpt_json = get_json_from_gpt(st.secrets["openai"]["openai_api_key"], 
+                                    st.secrets["openai"]["openai_org_id"], 
+                                    file_text
+        )
+        
+        st.text(json.dumps(gpt_json))
