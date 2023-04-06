@@ -122,8 +122,8 @@ if file is not None:
     with yet_another_expander:
         #st.text(get_model_list(st.secrets["openai"]["openai_api_key"], st.secrets["openai"]["openai_org_id"]))
         gpt_json = get_json_from_gpt(st.secrets["openai"]["openai_api_key"], 
-                                    st.secrets["openai"]["openai_org_id"], 
-                                    file_text
+                                     st.secrets["openai"]["openai_org_id"], 
+                                     file_text
         )
         
-        st.text(json.dumps(gpt_json))
+        st.text(json.dumps(gpt_json, indent=2))
