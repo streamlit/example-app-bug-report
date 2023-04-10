@@ -1,7 +1,7 @@
 import json
 import openai
 
-from ..config.prompt import FICHA_FINANCEIRA_PROMPT_TEXT_TO_JSON
+from config.prompt import FICHA_FINANCEIRA_PROMPT_TEXT_TO_JSON
 
 def get_model_list(api_key: str, org_id: str) -> None:
     openai.organization = org_id
