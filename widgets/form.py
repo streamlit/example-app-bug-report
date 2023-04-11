@@ -20,6 +20,4 @@ def create(sheets_connector):
             [[contract]],
         )
         st.success("Obrigado! A ficha foi recebida.")
-        st.balloons()
-
         return file
