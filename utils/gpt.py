@@ -1,26 +1,24 @@
 import json
 import openai
-
-from config.prompt import FICHA_FINANCEIRA_PROMPT_TEXT_TO_JSON
+import streamlit as st
 
 def get_model_list(api_key: str, org_id: str) -> None:
     openai.organization = org_id
     openai.api_key = api_key
     return openai.Model.list()
 
-
-def get_json_from_gpt(api_key: str, org_id: str, text: str) -> json:
+@st.cache_data
+def ask_gpt(api_key: str, org_id: str, prompt: str, text: str) -> str:
     openai.organization = org_id
     openai.api_key = api_key
     response = openai.Completion.create(
                     model="text-davinci-003",
-                    prompt=FICHA_FINANCEIRA_PROMPT_TEXT_TO_JSON + "\n" + f"'''{text}'''",
+                    prompt=prompt + "\n" + f"'''{text}'''",
                     max_tokens=1200,
                     temperature=0
                 )
     
     resp_json = json.loads(str(response))
-    gpt_text = resp_json["choices"][0]["text"]
-    gpt_json = json.loads("{" + gpt_text.split("{",1)[1]) #removes
+    resp_content = str(resp_json["choices"][0]["text"]).strip()
 
-    return gpt_json
+    return resp_content

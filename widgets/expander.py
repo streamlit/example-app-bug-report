@@ -1,28 +1,20 @@
 import streamlit as st
-import json
+from datetime import datetime
+from utils.dd_file import dd_contract
+from utils.pdf import generate_pdf_from_df
 
-from utils.pdf import text_extractor
-from utils.sheets import get_data, GSHEET_URL
-from utils.gpt import get_json_from_gpt
+import pdfkit as pdf
 
-def create_sheets_view(sheets_connector):
-    expander = st.expander("Veja os registros")
-    with expander:
-        st.write(f"Open original [Google Sheet]({GSHEET_URL})")
-        st.dataframe(get_data(sheets_connector))
+def create_table_view(contract: dd_contract) -> None:
+    
+    with st.expander("Veja o resultado da análise do Gepeto:"):
+       
+        df = contract.files_to_pandas()
+        
+        st.dataframe(df)
 
-def create_extraction_views(file):
-
-    if file is not None:
-        another_expander = st.expander("Veja o texto extraído do PDF")
-        with another_expander:
-            file_text = text_extractor(file.getvalue())
-            st.text(file_text)
-
-        yet_another_expander = st.expander("Veja a estrutura gerada pelo GPT")
-        with yet_another_expander:
-            gpt_json = get_json_from_gpt(st.secrets["openai"]["openai_api_key"], 
-                                        st.secrets["openai"]["openai_org_id"], 
-                                        file_text
-            )
-            st.text(json.dumps(gpt_json, indent=2))
+        st.download_button(
+            label="Download do relatório",
+            data=generate_pdf_from_df(contract.id, df),
+            file_name=f"relatorio_dd_{contract.id}_{datetime.today().strftime('%Y%m%d%H%M')}.pdf"
+        )

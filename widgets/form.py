@@ -1,23 +1,54 @@
 import streamlit as st
 from utils.sheets import add_row_to_gsheet
+from config.categories import documents
 
-def create(sheets_connector):
-    form = st.form(key="annotation")
+def create_upload():
+    form = st.form(key="files_upload")
     with form:
         cols = st.columns((1, 1))
-        contract = cols[0].text_input("Número do contrato:")
+        contract = cols[0].text_input("Código do contrato:", key="codigo_contrato")
         cols = st.columns(1)
-        file = st.file_uploader(
-            label="Enviar a ficha financeira do Vista Office",
+        
+        files = st.file_uploader(
+            label="Enviar todos os documentos de uma vez",
             type="pdf",
-            help="Precisa ser o arquivo pdf da ficha financeira gerada pelo Vista Office",
+            help="Todos os arquivos precisam ser PDF. No próximo passo, deve categorizar os arquivos.",
+            accept_multiple_files=True,
+            key="arquivos_dd"
         )
-        submitted = st.form_submit_button(label="Submit")
+
+        submitted = st.form_submit_button(label="Enviar arquivos")
 
     if submitted:
-        add_row_to_gsheet(
-            sheets_connector,
-            [[contract]],
-        )
-        st.success("Obrigado! A ficha foi recebida.")
-        return file
+        st.success("Documentos recebidos! Agora diga que documentos são esses:")
+        return files
+    
+
+def create_categorize(files):
+    form = st.form(key="files_categorize")
+    with form:
+
+        st.text(f"Preencha as categorias dos {len(files)} arquivos:")
+        
+        categories = []
+        option_list = ["Escolha..."]
+        option_list.extend([documents[doc]['name'] for doc in documents.keys()])
+        new_option_list = [k for k in documents.keys()]
+
+        for file in files:
+            category = st.selectbox(
+                label=f"{file.name}",
+                # options=["Escolha...", "Certidão negativa PF", "Matrícula do imóvel", "Débitos trabalhistas"],
+                options=new_option_list,
+                format_func=(lambda o: documents[o]['name']),
+                key=f"category-{file.name.lower()}",
+            )
+            categories.append(category)
+
+        submitted = st.form_submit_button(label="Categorizar e inicar processamento")
+
+    if submitted:
+        st.success("Categorias registradas. Iniciando processamento...")
+        if 'categories' not in st.session_state:
+            st.session_state['categories'] = categories
+        return categories

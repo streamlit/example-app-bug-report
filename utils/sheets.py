@@ -11,7 +11,7 @@ SPREADSHEET_ID = "1h6G7_T2T88Lh5rottS8DYV-ieqIqHZCbfn3HoW1NTPw"
 SHEET_NAME = "Sheet1"
 GSHEET_URL = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}"
 
-@st.experimental_singleton()
+@st.cache_resource()
 def connect_to_gsheet():
     # Create a connection object.
     credentials = service_account.Credentials.from_service_account_info(
